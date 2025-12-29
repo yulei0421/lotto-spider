@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /api/stats
+Disallow: /backend/
+Disallow: /node_modules/
+
+Sitemap: https://lotto-spider.vercel.app/sitemap.xml
