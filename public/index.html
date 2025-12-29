@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双色球历史数据与分析</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>双色球数据中心</h1>
+                <p class="subtitle">历史开奖查询 & 智能随机选号</p>
+            </div>
+            <div class="stats-card">
+                <div class="stat-item">
+                    <span class="stat-label">总期数</span>
+                    <span class="stat-value" id="total-issues">Loading...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最新期号</span>
+                    <span class="stat-value" id="latest-issue">Loading...</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- 随机选号区域 -->
+            <section class="generator-section glass-panel">
+                <div class="section-header">
+                    <h2>🎲 幸运选号器</h2>
+                    <p>基于历史数据过滤重复组合</p>
+                </div>
+                
+                <div class="lottery-display" id="generated-ticket">
+                    <div class="balls-container">
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball red placeholder">?</span>
+                        <span class="ball blue placeholder">?</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="generate-btn" class="primary-btn">
+                        <span class="btn-text">生成号码</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                </div>
+            </section>
+
+             <!-- 走势图区域 -->
+             <section class="chart-section glass-panel">
+                <div class="section-header row-between">
+                    <div>
+                        <h2>📈 近期走势分析</h2>
+                        <p>最近 30 期红蓝球号码分布趋势</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="lottoChart"></canvas>
+                </div>
+            </section>
+
+             <!-- AI 预测区域 -->
+             <section class="ai-section glass-panel">
+                <div class="section-header">
+                    <h2>🤖 AI 深度学习预测</h2>
+                    <p>基于 Transformer 注意力机制模型分析下期概率</p>
+                </div>
+                
+                <div class="ai-controls">
+                    <button id="ai-btn" class="primary-btn ai-btn-style">
+                        <span class="btn-text">开始 AI 模型运算</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <div id="ai-status" class="status-text hidden">正在构建神经网络...</div>
+                </div>
+
+                <div id="ai-result" class="ai-result-container hidden">
+                    <div class="ai-prediction-row">
+                        <span class="label">预测推荐:</span>
+                        <div class="balls-container small-gap">
+                            <!-- JS 填充 -->
+                        </div>
+                    </div>
+                    <div class="ai-info">
+                        <small>* 模型训练基于最近 100 期数据，预测结果仅供娱乐参考</small>
+                    </div>
+                </div>
+            </section>
+
+             <!-- 蓝球深度分析区域 -->
+             <section class="blue-analysis-section glass-panel">
+                <div class="section-header">
+                    <h2>🔵 蓝球遗漏与概率分析</h2>
+                    <p>1-16号蓝球遗漏期数与热度统计</p>
+                </div>
+                
+                <div class="blue-recommendation">
+                     <div class="rec-card">
+                        <span class="rec-label">🔥 最热号码</span>
+                        <div class="rec-value">
+                             <span class="ball blue" id="rec-hot">-</span>
+                        </div>
+                        <span class="rec-desc">近期出现最频繁</span>
+                     </div>
+                     <div class="rec-card">
+                        <span class="rec-label">❄️ 遗漏王</span>
+                        <div class="rec-value">
+                            <span class="ball blue" id="rec-cold">-</span>
+                        </div>
+                        <span class="rec-desc">当前遗漏 <span id="cold-omit-count" class="highlight-text">0</span> 期</span>
+                     </div>
+                     <div class="rec-card">
+                        <span class="rec-label">🔮 下期预测</span>
+                        <div class="rec-value">
+                            <span class="ball blue" id="rec-next">-</span>
+                        </div>
+                         <span class="rec-desc">综合加权推荐</span>
+                     </div>
+                     <div class="rec-card">
+                        <span class="rec-label">🔗 马尔科夫链</span>
+                        <div class="rec-value">
+                            <span class="ball blue" id="rec-markov">-</span>
+                        </div>
+                         <span class="rec-desc">状态转移矩阵</span>
+                     </div>
+                </div>
+
+                <div class="blue-stats-grid" id="blue-stats-container">
+                    <!-- JS 填充: 显示1-16号球的遗漏和热度 -->
+                </div>
+            </section>
+
+            <!-- 历史数据列表 -->
+            <section class="history-section glass-panel">
+                <div class="section-header row-between">
+                    <h2>📜 历史开奖记录</h2>
+                    <div class="pagination-controls">
+                        <button id="prev-page" class="icon-btn" disabled>&lt;</button>
+                        <span id="page-info">第 1 页</span>
+                        <button id="next-page" class="icon-btn">&gt;</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>期号</th>
+                                <th>开奖日期</th>
+                                <th>中奖号码</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list">
+                            <!-- 数据将通过 JS 插入 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 站点统计 (默认隐藏) -->
+            <section id="admin-stats-panel" class="stats-section glass-panel hidden">
+                 <div class="section-header">
+                    <h2>📊 站点访问统计</h2>
+                    <p>总访问量: <span id="site-pv" class="highlight-text">0</span> | 独立访客: <span id="site-uv" class="highlight-text">0</span></p>
+                </div>
+                <div class="logs-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>最后访问</th>
+                                <th>IP</th>
+                                <th>次数</th>
+                                <th>设备</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visit-logs">
+                             <!-- JS 填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>

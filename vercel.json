@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/stats", "destination": "/api/stats" },
+    { "source": "/data/(.*)", "destination": "/data/$1" },
+    { "source": "/(.*)", "destination": "/public/$1" }
+  ]
+}

@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+
+# production
+/dist
+/public/dist
+
+# logs
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# data
+/data/*.json
+!/data/.gitkeep
+
+# env
+.env

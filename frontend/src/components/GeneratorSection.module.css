@@ -1,0 +1,35 @@
+.lotteryDisplay {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.ballsContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.placeholder {
+  opacity: 0.3;
+}
+
+.attempts {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .ballsContainer {
+    gap: 0.75rem;
+  }
+}

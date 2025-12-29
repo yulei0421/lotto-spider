@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <meta name="description" content="双色球历史数据查询、走势分析、智能随机选号系统">
+    <meta name="keywords" content="双色球,开奖查询,历史数据,走势分析,随机选号">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 预加载 brain.js -->
+    <link rel="preload" href="https://unpkg.com/brain.js" as="script">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- 传递服务端数据到客户端 -->
+    <script>
+        window.__INITIAL_DATA__ = {
+            stats: <%- stats %>
+        };
+    </script>
+    
+    <!-- 加载 React 应用 -->
+    <script src="/public/dist/bundle.js"></script>
+</body>
+</html>
