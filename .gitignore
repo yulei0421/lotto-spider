@@ -1,8 +1,6 @@
 node_modules
 .DS_Store
 .vercel
-/public/model/*.bin
-/public/model/*.json
 /data/access_logs.json
 npm-debug.log*
 yarn-debug.log*
