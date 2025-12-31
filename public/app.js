@@ -234,39 +234,72 @@ function renderStats() {
 /** ----------------图表逻辑---------------- **/
 
 function renderChart() {
-    if (state.data.length === 0 || !els.chartCanvas) return;
-    const recentData = state.data.slice(0, 30).reverse();
-    const labels = recentData.map(item => item.issue);
-    const datasets = [];
-    for (let i = 0; i < 6; i++) {
-        datasets.push({
-            label: `红球 ${i + 1}`,
-            data: recentData.map(item => parseInt(item.front[i])),
-            borderColor: 'rgba(239, 68, 68, 0.6)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderWidth: 2,
-            tension: 0.3, pointRadius: 3, pointBackgroundColor: '#ef4444'
-        });
-    }
-    datasets.push({
-        label: '蓝球',
-        data: recentData.map(item => parseInt(item.back)),
-        borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        borderWidth: 3, borderDash: [5, 5], tension: 0.3, pointRadius: 4,
-        pointBackgroundColor: '#3b82f6', yAxisID: 'y1'
-    });
+    const ctx = els.chartCanvas.getContext('2d');
+    if (state.data.length === 0 || !ctx) return;
 
-    if (chartInstance) chartInstance.destroy();
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
-    chartInstance = new Chart(els.chartCanvas, {
+    // 只取最近 30 期，横向拉开距离
+    const recentData = [...state.data].slice(0, 30).reverse();
+    const labels = recentData.map(item => item.issue.slice(-3) + '期'); // 只显示后三位期号
+    
+    // 计算红色球和值
+    const redSums = recentData.map(d => d.front.map(Number).reduce((a, b) => a + b, 0));
+    const blueBalls = recentData.map(d => Number(d.back));
+
+    // 创建渐变
+    const gradRed = ctx.createLinearGradient(0, 0, 0, 400);
+    gradRed.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    gradRed.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, 400);
+    gradBlue.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+    gradBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+    if (window.myChart) window.myChart.destroy();
+
+    window.myChart = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets },
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: '红球总和值',
+                    data: redSums,
+                    borderColor: '#ef4444',
+                    backgroundColor: gradRed,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '蓝球号码',
+                    data: blueBalls,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5], // 虚线区分
+                    pointStyle: 'rectRot',
+                    pointRadius: 5,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
             plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                legend: {
+                    display: true,
+                    labels: { color: '#94a3b8', font: { size: 12, family: 'Inter' } }
+                },
                 tooltip: {
                     backgroundColor: 'rgba(15, 23, 42, 0.9)',
                     padding: 10,
@@ -276,9 +309,28 @@ function renderChart() {
                 }
             },
             scales: {
-                y: { min: 1, max: 33, title: { display: true, text: '红球 (1-33)' } },
-                y1: { position: 'right', min: 1, max: 16, grid: { drawOnChartArea: false }, title: { display: true, text: '蓝球 (1-16)' } },
-                x: { grid: { display: false } }
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b', font: { size: 10 } }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: '红球和值', color: '#ef4444' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#64748b' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 1,
+                    max: 16,
+                    title: { display: true, text: '蓝球号码', color: '#3b82f6' },
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#64748b' }
+                }
             }
         }
     });
