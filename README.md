@@ -52,6 +52,7 @@ npm run start:dev
 ```
 
 这会同时启动：
+
 - NestJS 服务器（自动重启）
 - Webpack 监听模式（自动编译前端代码）
 
@@ -200,3 +201,5 @@ NODE_ENV=development   # 环境模式
 ## 📄 许可证
 
 MIT License
+
+git add . && git commit -m "UI: Add sticky side contact bars and footer contact info" && git push origin main && vercel --prod
