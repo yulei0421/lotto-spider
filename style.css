@@ -324,8 +324,16 @@ h1 {
 /* 走势图容器 */
 .chart-container {
     position: relative;
-    height: 400px;
+    height: 450px;
     width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
