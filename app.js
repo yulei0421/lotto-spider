@@ -380,8 +380,8 @@ async function runAIPrediction() {
         const model = await tf.loadLayersModel('./model/model.json');
         els.aiStatus.textContent = "全量自适应残差模型加载成功...";
 
-        const LOOKBACK = 12; // 严格适配 12 期
-        if (state.data.length < LOOKBACK) throw new Error("历史数据不足以进行 12 期时序分析");
+        const LOOKBACK = 50; // 严格适配训练时的 50 期窗口
+        if (state.data.length < LOOKBACK) throw new Error("历史数据不足以进行 50 期时序分析");
 
         // 1. 全局统计 (用于 Z-Score)
         const allNumericData = state.data.flatMap(d => [...d.front.map(Number), Number(d.back)]);
@@ -434,7 +434,7 @@ async function runAIPrediction() {
             const freq = [...redInts.map(n => globalFreq.red[n] / state.data.length), globalFreq.blue[Number(current.back)] / state.data.length];
             const omit = [...redInts.map(n => Math.min(currentOmit.red[n] / 50, 1)), Math.min(currentOmit.blue[Number(current.back)] / 50, 1)];
             
-            // 总计 30 维/期
+            // 总计 27 维/期
             windowVector.push(...base, ...freq, ...omit, rangeRed, avgDev, sumRed, oddCount, bigCount, serialCount);
         });
 
