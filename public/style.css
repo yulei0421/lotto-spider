@@ -802,3 +802,26 @@ h1 {
         display: none; /* 移动端和中等屏幕隐藏悬浮窗，保留页脚联系方式 */
     }
 }
+
+/* 推荐理由样式 */
+.analysis-reason {
+    margin: 1.5rem 0;
+    padding: 1rem 1.2rem;
+    background: rgba(var(--accent-blue-rgb), 0.1);
+    border-left: 4px solid var(--accent-blue);
+    border-radius: 4px 12px 12px 4px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.analysis-reason strong {
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
