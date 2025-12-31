@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "15 14 * * 0,2,4" # UTC时间 14:15 (北京时间 22:15)，错开15分钟确保官网已产出数据
 
 permissions:
   contents: write

@@ -202,4 +202,4 @@ NODE_ENV=development   # 环境模式
 
 MIT License
 
-git add . && git commit -m "UI: Add sticky side contact bars and footer contact info" && git push origin main && vercel --prod
+git add . && git commit -m "info: update" && git push origin main && vercel --prod

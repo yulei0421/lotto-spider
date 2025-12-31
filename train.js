@@ -37,23 +37,41 @@ async function train() {
         let windowVector = [];
         let currentOmit = { red: Array(34).fill(0), blue: Array(17).fill(0) };
 
-        windowData.forEach(current => {
+        // 3. 构建特征向量 (Z-Score + 补充统计维度)
+        for (let k = 0; k < windowData.length; k++) { // Iterate through the windowData
+            const current = windowData[k]; // 'current' refers to an item in the window
+            const redInts = current.front.map(Number);
+            const blueInt = Number(current.back);
+            
+            // Update currentOmit based on the previous state for this 'current' item
             for(let j=1; j<=33; j++) currentOmit.red[j]++;
             for(let j=1; j<=16; j++) currentOmit.blue[j]++;
-            current.front.forEach(n => currentOmit.red[Number(n)] = 0);
-            currentOmit.blue[Number(current.back)] = 0;
+            redInts.forEach(n => currentOmit.red[n] = 0);
+            currentOmit.blue[blueInt] = 0;
 
-            // 补充特征：极差、均值偏离
-            const redInts = current.front.map(Number);
+            // 基础统计特征
             const rangeRed = (Math.max(...redInts) - Math.min(...redInts)) / 32;
             const avgDev = (redInts.reduce((a, b) => a + Math.abs(b - 17), 0) / 6) / 16;
+            const sumRed = (redInts.reduce((a, b) => a + b, 0)) / 198; // 归一化和值 (max sum = 33+32+31+30+29+28 = 183, let's use 198 for a bit more range)
+            const oddCount = redInts.filter(n => n % 2 !== 0).length / 6;
+            const bigCount = redInts.filter(n => n > 16).length / 6;
+            // Sort redInts to correctly count serial numbers
+            const sortedRedInts = [...redInts].sort((a, b) => a - b);
+            let serialCount = 0;
+            for (let s = 0; s < sortedRedInts.length - 1; s++) {
+                if (sortedRedInts[s+1] === sortedRedInts[s] + 1) {
+                    serialCount++;
+                }
+            }
+            serialCount /= 5; // Max 5 serial pairs in 6 numbers
 
-            const base = [...redInts.map(zScore), zScore(Number(current.back))];
-            const freq = [...redInts.map(n => globalFreq.red[n] / data.length), globalFreq.blue[Number(current.back)] / data.length];
-            const omit = [...redInts.map(n => Math.min(currentOmit.red[n] / 50, 1)), Math.min(currentOmit.blue[Number(current.back)] / 50, 1)];
-            
-            windowVector.push(...base, ...freq, ...omit, rangeRed, avgDev);
-        });
+            const base = [...redInts.map(zScore), zScore(blueInt)];
+            const freq = [...redInts.map(n => globalFreq.red[n] / data.length), globalFreq.blue[blueInt] / data.length];
+            const omit = [...redInts.map(n => Math.min(currentOmit.red[n] / 50, 1)), Math.min(currentOmit.blue[blueInt] / 50, 1)];
+
+            // 扩展特征包 (每步 25 维 -> 30 维: 6*zScore + 1*zScore + 6*freq + 1*freq + 6*omit + 1*omit + 6 additional stats)
+            windowVector.push(...base, ...freq, ...omit, rangeRed, avgDev, sumRed, oddCount, bigCount, serialCount);
+        }
         inputSequences.push(windowVector);
         outputTargets.push([...next.front.map(n => Number(n) / 33), Number(next.back) / 16]);
     }
@@ -68,27 +86,42 @@ async function train() {
     const featureSize = inputSequences[0].length;
     console.log(`[工程层] 特征维度: ${featureSize}, 训练集: ${splitIdx}, 验证集: ${inputSequences.length - splitIdx}`);
 
-    // 4. 构建残差结构的深度模型 (Functional API 以支持残差连接)
+    // 4. 构建残差结构的深度模型 (增加 1D 卷积层提取空间特征)
     const input = tf.input({ shape: [featureSize] });
     
-    // Block 1
-    let x = tf.layers.dense({ units: 512, kernelRegularizer: tf.regularizers.l2({ l2: 1e-4 }) }).apply(input);
+    // 卷积处理：提取跨期的号码组合特征
+    // 先将一维特征向量重构为 [LOOKBACK, 27] 的时空网格 (27 为单期特征数)
+    let x = tf.layers.reshape({ targetShape: [LOOKBACK, 27] }).apply(input);
+    
+    // Conv Block
+    x = tf.layers.conv1d({
+        filters: 64,
+        kernelSize: 3,
+        padding: 'same',
+        kernelRegularizer: tf.regularizers.l2({ l2: 1e-4 })
+    }).apply(x);
     x = tf.layers.leakyReLU({ alpha: 0.1 }).apply(x);
     x = tf.layers.batchNormalization().apply(x);
-    const res1 = x; // 残差点
+    
+    x = tf.layers.flatten().apply(x);
 
-    // Block 2
-    x = tf.layers.dense({ units: 512, kernelRegularizer: tf.regularizers.l2({ l2: 1e-4 }) }).apply(x);
-    x = tf.layers.leakyReLU({ alpha: 0.1 }).apply(x);
-    x = tf.layers.batchNormalization().apply(x);
-    x = tf.layers.add().apply([x, res1]); // 残差连接
+    // 深度残差 Block
+    let denseX = tf.layers.dense({ units: 512, kernelRegularizer: tf.regularizers.l2({ l2: 1e-4 }) }).apply(x);
+    denseX = tf.layers.leakyReLU({ alpha: 0.1 }).apply(denseX);
+    denseX = tf.layers.batchNormalization().apply(denseX);
+    const res1 = denseX; 
 
-    // Block 3
-    x = tf.layers.dense({ units: 256 }).apply(x);
-    x = tf.layers.leakyReLU({ alpha: 0.1 }).apply(x);
-    x = tf.layers.dropout({ rate: 0.5 }).apply(x);
+    denseX = tf.layers.dense({ units: 512, kernelRegularizer: tf.regularizers.l2({ l2: 1e-4 }) }).apply(denseX);
+    denseX = tf.layers.leakyReLU({ alpha: 0.1 }).apply(denseX);
+    denseX = tf.layers.batchNormalization().apply(denseX);
+    denseX = tf.layers.add().apply([denseX, res1]); 
 
-    const output = tf.layers.dense({ units: 7, activation: 'sigmoid' }).apply(x);
+    // 输出层
+    denseX = tf.layers.dense({ units: 256 }).apply(denseX);
+    denseX = tf.layers.leakyReLU({ alpha: 0.1 }).apply(denseX);
+    denseX = tf.layers.dropout({ rate: 0.5 }).apply(denseX);
+
+    const output = tf.layers.dense({ units: 7, activation: 'sigmoid' }).apply(denseX);
     const model = tf.model({ inputs: input, outputs: output });
 
     model.compile({
