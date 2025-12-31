@@ -348,12 +348,24 @@ async function runAIPrediction() {
             const redInts = current.front.map(Number);
             const rangeRed = (Math.max(...redInts) - Math.min(...redInts)) / 32;
             const avgDev = (redInts.reduce((a, b) => a + Math.abs(b - 17), 0) / 6) / 16;
+            
+            // 新增 4 个高级统计特征 (同步 train.js)
+            const sumRed = (redInts.reduce((a, b) => a + b, 0)) / 198;
+            const oddCount = redInts.filter(n => n % 2 !== 0).length / 6;
+            const bigCount = redInts.filter(n => n > 16).length / 6;
+            const sortedReds = [...redInts].sort((a, b) => a - b);
+            let serialCount = 0;
+            for(let s=0; s<sortedReds.length-1; s++) {
+                if(sortedReds[s+1] === sortedReds[s]+1) serialCount++;
+            }
+            serialCount /= 5;
 
             const base = [...redInts.map(zScore), zScore(Number(current.back))];
             const freq = [...redInts.map(n => globalFreq.red[n] / state.data.length), globalFreq.blue[Number(current.back)] / state.data.length];
             const omit = [...redInts.map(n => Math.min(currentOmit.red[n] / 50, 1)), Math.min(currentOmit.blue[Number(current.back)] / 50, 1)];
             
-            windowVector.push(...base, ...freq, ...omit, rangeRed, avgDev);
+            // 总计 30 维/期
+            windowVector.push(...base, ...freq, ...omit, rangeRed, avgDev, sumRed, oddCount, bigCount, serialCount);
         });
 
         // 3. 推理
