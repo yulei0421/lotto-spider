@@ -377,7 +377,7 @@ async function runAIPrediction() {
     els.aiResult.classList.add('hidden');
 
     try {
-        const model = await tf.loadLayersModel('/model/model.json');
+        const model = await tf.loadLayersModel('./model/model.json');
         els.aiStatus.textContent = "全量自适应残差模型加载成功...";
 
         const LOOKBACK = 12; // 严格适配 12 期
