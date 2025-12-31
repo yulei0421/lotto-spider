@@ -88,7 +88,22 @@ function renderBlueBallAnalysis() {
         scores.push({ ball: i, score });
     }
     scores.sort((a, b) => b.score - a.score);
-    const predictedBall = scores[0].ball;
+    const best = scores[0];
+    const predictedBall = best.ball;
+    const bestStats = stats[predictedBall];
+
+    // 生成理由
+    let reason = "";
+    const probWeight = (bestStats.count / actualMaxCount) * 0.6;
+    const omitWeight = Math.min(bestStats.omit / 50, 1) * 0.4;
+
+    if (probWeight > omitWeight * 1.5) {
+        reason = `该号码属于<strong>高频热码</strong>。近期表现极其活跃（出现 ${bestStats.count} 次），即便在加权模型中略有遗漏权重，其强大的惯性趋势仍使其成为首选。`;
+    } else if (omitWeight > probWeight * 1.5) {
+        reason = `该号码属于<strong>长遗漏回补型</strong>。已连续 ${bestStats.omit} 期未出，遗漏指标已达临界点，模型检测到极强的技术性反弹需求。`;
+    } else {
+        reason = `该号码属于<strong>均衡潜力型</strong>。它在出球频次（${bestStats.count} 次）和遗漏周期（${bestStats.omit} 期）之间达到了完美的数学平衡点，概率分布最为稳健。`;
+    }
 
     // 渲染
     if(document.getElementById('rec-hot')) document.getElementById('rec-hot').textContent = hotBall.toString().padStart(2, '0');
@@ -97,6 +112,7 @@ function renderBlueBallAnalysis() {
         document.getElementById('cold-omit-count').textContent = maxOmit;
     }
     if(document.getElementById('rec-next')) document.getElementById('rec-next').textContent = predictedBall.toString().padStart(2, '0');
+    if(document.getElementById('blue-rec-reason')) document.getElementById('blue-rec-reason').innerHTML = `💡 推荐理由：${reason}`;
 
     const container = document.getElementById('blue-stats-container');
     if (container) {

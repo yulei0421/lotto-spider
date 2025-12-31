@@ -173,37 +173,31 @@
           </div>
 
           <div class="blue-recommendation">
-            <div class="rec-card">
-              <span class="rec-label">🔥 最热号码</span>
-              <div class="rec-value">
-                <span class="ball blue" id="rec-hot">-</span>
-              </div>
-              <span class="rec-desc">近期出现最频繁</span>
-            </div>
-            <div class="rec-card">
-              <span class="rec-label">❄️ 遗漏王</span>
-              <div class="rec-value">
-                <span class="ball blue" id="rec-cold">-</span>
-              </div>
-              <span class="rec-desc"
-                >当前遗漏
-                <span id="cold-omit-count" class="highlight-text">0</span>
-                期</span
-              >
-            </div>
-            <div class="rec-card">
-              <span class="rec-label">🔮 下期预测</span>
-              <div class="rec-value">
-                <span class="ball blue" id="rec-next">-</span>
-              </div>
-              <span class="rec-desc">综合加权推荐</span>
-            </div>
-            <div class="rec-card">
-              <span class="rec-label">🔗 马尔科夫链</span>
-              <div class="rec-value">
-                <span class="ball blue" id="rec-markov">-</span>
-              </div>
-              <span class="rec-desc">状态转移矩阵</span>
+            <div class="stat-card blue-analysis-card">
+                <div class="card-header">
+                    <h2>🔵 蓝球综合深度分析</h2>
+                </div>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <span class="label">当前热号</span>
+                        <span class="value" id="rec-hot">?</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="label">遗漏之王</span>
+                        <span class="value" id="rec-cold">?</span>
+                        <span class="sub" id="cold-omit-count">0</span><span class="sub">期未出</span>
+                    </div>
+                    <div class="analysis-item highlight">
+                        <span class="label">综合加权推荐</span>
+                        <span class="value" id="rec-next">?</span>
+                    </div>
+                </div>
+                <!-- 新增推荐理由容器 -->
+                <div id="blue-rec-reason" class="analysis-reason"></div>
+                
+                <div class="markov-box">
+                    <p>马尔可夫链预测 (状态转移): <strong id="rec-markov">?</strong></p>
+                </div>
             </div>
           </div>
 
