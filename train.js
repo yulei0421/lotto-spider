@@ -14,7 +14,7 @@ async function train() {
     console.log(`加载了 ${data.length} 条数据`);
 
     // 2. 增强型特征工程与标准化 (Z-Score)
-    const LOOKBACK = 12; // 扩展窗口到 12 期
+    const LOOKBACK = 50; // 扩展窗口到 50 期
     const inputSequences = [];
     const outputTargets = [];
 
