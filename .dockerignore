@@ -1,0 +1,9 @@
+node_modules
+.git
+.gitignore
+.vercel
+.github
+*.log
+data/access_logs.json
+Dockerfile
+.dockerignore
