@@ -220,7 +220,7 @@ async function fetchData() {
     const response = await fetch('/data/ssq-full-data.json');
     if (!response.ok) throw new Error('Failed to load data');
     state.data = await response.json();
-    state.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    state.data.sort((a, b) => b.issue.localeCompare(a.issue));
     state.total = state.data.length;
 }
 
